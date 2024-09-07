@@ -39,7 +39,7 @@ def get_build_path() -> Path:
 def get_install_path() -> Path:
     global INSTALL_PATH
     if INSTALL_PATH is None:
-        INSTALL_PATH = SRC_PATH / "install"
+        INSTALL_PATH = SRC_PATH / "bin"
     return INSTALL_PATH
 
 @task
