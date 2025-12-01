@@ -39,7 +39,7 @@ def get_build_path() -> Path:
 def get_install_path() -> Path:
     global INSTALL_PATH
     if INSTALL_PATH is None:
-        INSTALL_PATH = SRC_PATH / "bin"
+        INSTALL_PATH = SRC_PATH
     return INSTALL_PATH
 
 @task
@@ -69,11 +69,19 @@ def do_config(c):
         str(SRC_PATH),
         "-B",
         str(build_path),
-        "-GNinja",
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
-        f"-DCMAKE_TOOLCHAIN_FILE={str(VCPKG_TOOLCHAIN)}",
+        "-DCMAKE_INSTALL_PREFIX=\"\"",
+        # f"-DCMAKE_TOOLCHAIN_FILE={str(VCPKG_TOOLCHAIN)}",
     ]
+    if sys.platform == 'win32':
+        cmd.append("-G \"MinGW Makefiles\"")
+        cmd.append("-DCMAKE_CXX_COMPILER=g++")
+        cmd.append("-DCMAKE_MAKE_PROGRAM=mingw32-make")
+    else:
+        cmd.append("-GNinja")
+
+    # print(" ".join(cmd))
     c.run(" ".join(cmd), pty=pty)
 
     #Symlink compiles.json
@@ -129,8 +137,9 @@ def clean(c):
 @task(pre=[clean])
 def clean_all(c):
     install_path = get_install_path()
-    if install_path.exists():
-        shutil_rmtree(install_path)
-        print(f"Cleaned {install_path}")
+    real_path = install_path / "bin"
+    if real_path.exists():
+        shutil_rmtree(real_path)
+        print(f"Cleaned {real_path}")
     else:
         print("Install path absent. Nothing to do.")
